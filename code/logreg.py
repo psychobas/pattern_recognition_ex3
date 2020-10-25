@@ -36,14 +36,22 @@ class LOGREG(object):
 
 
         #https://stackoverflow.com/questions/58567344/python-logistic-regression-hessian-getting-a-divide-by-zero-error-and-a-singu
-        cost = (-sum(-y * np.log(h + self._eps) - (1 - y) * np.log(1 - h)) / m).flat[0]
+        #cost = (-sum(-y * np.log(h + self._eps) - (1 - y) * np.log(1 - h)) / m).flat[0]
         #print("cost is:   ", cost)
 
-        regularizationTerm = - self.r / 2 * np.dot(w.T, w)
+        #slide 17!
+        cost = np.sum(y * h - np.log(1 + np.exp(h)))
+        #cost = (-y * np.log(h + self._eps) - (1 - y) * np.log(1 - h)).mean()
+        #cost = y * w.T * X - np.log()
+
+
+        print("shape of w is: ", w.shape)
+
+        # make sure bias term is not regularized
+        regularizationTerm = - self.r / 2 * np.dot(w.T[:,1:], w[1:])
+        print("Regularization term is: ", regularizationTerm)
         #regularizationTerm = 0
         # TODO: Implement equation of cost function for posterior p(y=1|X,w) -> DONE, (check regularization)
-
-
 
         return cost + regularizationTerm
 
@@ -64,11 +72,15 @@ class LOGREG(object):
         #print("shape of y is: ", y.shape)
         #print("shape of reshaped x is: ", X.shape)
 
-        firstDerivative = (np.dot(X, (h.flatten() - y.flatten())) / y.shape[0])
+        firstDerivative = np.dot(X, (h.flatten() - y.flatten())) / y.shape[0]
+        print("h flattened is: ", h.flatten())
+        print("y flattened is: ", y.flatten())
         #print("first Derivative is: ", firstDerivative)
         #double check!
-        regularizationTerm = self.r * w
+        #regularizationTerm = self.r * w
         regularizationTerm = 0
+
+        print("first Derivative is: ", firstDerivative)
 
         return firstDerivative + regularizationTerm
 
@@ -126,6 +138,7 @@ class LOGREG(object):
             derivative = self._calculateDerivative(w, X, y)
             #print("shape of derivative is: ", derivative.shape)
             #slide 21
+            #slide 23 bottom: Matrix formula!!
             w_update = np.dot(np.linalg.inv(h), derivative)
             print("w_update is: ", w_update)
             #print("shape of w_update is: ", w_update.shape)

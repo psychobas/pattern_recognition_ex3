@@ -30,6 +30,7 @@ class NaiveBayes():
         txt = filecontent.split(" ")
         txtClean = [(re.sub(r'[^a-zA-Z]+', '', i).lower()) for i in txt]
         words = [i for i in txtClean if i.isalpha()]
+        print(words)
         return words
 
     def train(self, msgDirectory: str, fileFormat: str = '*.txt') -> (List[Word], float):
@@ -38,13 +39,96 @@ class NaiveBayes():
         :return: model dictionary and model prior
         '''
         files = sorted(glob.glob(msgDirectory + fileFormat))
-        # TODO: Train the naive bayes classifier
-        # TODO: Hint - store the dictionary as a list of 'wordCounter' objects
+
         ham_words = []
         spam_words = []
+
+        spam_words_flat = []
+        ham_words_flat = []
+
+        for file in files:
+            if "spmsga" in file:
+                f_open = open(file)
+                f = f_open.read()
+                f = self._extractWords(f)
+                spam_words.append(f)
+                # is still a list of lists.
+                #flatten
+                for sublist in spam_words:
+                    for item in sublist:
+                        spam_words_flat.append(item)
+
+
+
+                print("spam")
+            else:
+                print("ham")
+                f_open = open(file)
+                f = f_open.read()
+                f = self._extractWords(f)
+                ham_words.append(f)
+
+                # flatten
+                for sublist in ham_words:
+                    for item in sublist:
+                        ham_words_flat.append(item)
+
+        #dictionary with word counts for spam words:
+        spam_word_count_dict = {}
+        ham_word_count_dict = {}
+
+
+        for word in spam_words_flat:
+            try:
+                spam_word_count_dict[word] += 1
+            except KeyError:
+                spam_word_count_dict[word] = 1
+
+
+        for word in ham_words_flat:
+            try:
+                ham_word_count_dict[word] += 1
+            except KeyError:
+                ham_word_count_dict[word] = 1
+
+        # todo: loop over both dictionaries to create list with Word instances
+
+
+        unique_words = set(spam_words_flat + ham_words_flat)
+
+        final_dictionary = []  #
+
+        #total number of words per class
+        n_words_spam = sum(spam_word_count_dict.values())
+        n_words_ham = sum(ham_word_count_dict.values())
+
+        for word in unique_words:
+
+            numOfHamWords = ham_word_count_dict.get(word, 0) + 1 #smoothing
+            numOfSpamWords = spam_word_count_dict.get(word, 0) + 1 #smoothing
+
+            #double check if smoothing (denominator) is correct
+            spam_likelihood = numOfSpamWords / n_words_spam + len(spam_word_count_dict)
+            ham_likelihood = numOfHamWords / n_words_ham + len(ham_word_count_dict)
+
+            indicativeness = spam_likelihood / ham_likelihood
+
+            w = Word(word = word, numOfHamWords = numOfHamWords, numOfSpamWords = numOfSpamWords, indicativeness = indicativeness)
+
+            final_dictionary.append(w)
+
+
+
+
+
+        # TODO: Train the naive bayes classifier
+        # TODO: Hint - store the dictionary as a list of 'wordCounter' objects
+
+        #use _extractWords function to extract the words once they are loaded
+
         spam_emails_count = 0
-        final_dictionary = []
-        priorSpam = 0
+
+        priorSpam = len(spam_words) / len(ham_words) # fraction of documents that are spam (start with "spm")
         self.logPrior = math.log(priorSpam / (1.0 - priorSpam))
         final_dictionary.sort(key=lambda x: x.indicativeness, reverse=True)
         self.dictionary = final_dictionary
@@ -59,7 +143,10 @@ class NaiveBayes():
 
         txt = np.array(self._extractWords(message))
         # TODO: Implement classification function
-        return ???
+
+        #USE LAPLACE SMOOTHING FOR LIKELIHOOD (SLIDE 9)
+
+        return 0#???
 
     def classifyAndEvaluateAllInFolder(self, msgDirectory: str, number_of_features: int,
                                        fileFormat: str = '*.txt') -> float:
