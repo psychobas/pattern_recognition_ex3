@@ -9,11 +9,13 @@ class Word():
     '''
     Placeholder to store information about each entry (word) in a dictionary
     '''
-    def __init__(self, word, numOfHamWords, numOfSpamWords, indicativeness):
+    def __init__(self, word, numOfHamWords, numOfSpamWords, indicativeness, spam_likelihood, ham_likelihood):
         self.word = word
         self.numOfHamWords = numOfHamWords
         self.numOfSpamWords = numOfSpamWords
         self.indicativeness = indicativeness
+        self.spam_likelihood = spam_likelihood
+        self.ham_likelihood = ham_likelihood
 
 
 class NaiveBayes():
@@ -57,7 +59,6 @@ class NaiveBayes():
                 for sublist in spam_words:
                     for item in sublist:
                         spam_words_flat.append(item)
-
 
 
                 print("spam")
@@ -108,12 +109,13 @@ class NaiveBayes():
             numOfSpamWords = spam_word_count_dict.get(word, 0) + 1 #smoothing
 
             #double check if smoothing (denominator) is correct
-            spam_likelihood = numOfSpamWords / n_words_spam + len(spam_word_count_dict)
-            ham_likelihood = numOfHamWords / n_words_ham + len(ham_word_count_dict)
+            spam_likelihood = numOfSpamWords / (n_words_spam + len(spam_word_count_dict))
+            ham_likelihood = numOfHamWords / (n_words_ham + len(ham_word_count_dict))
 
             indicativeness = spam_likelihood / ham_likelihood
 
-            w = Word(word = word, numOfHamWords = numOfHamWords, numOfSpamWords = numOfSpamWords, indicativeness = indicativeness)
+            w = Word(word = word, numOfHamWords = numOfHamWords, numOfSpamWords = numOfSpamWords, indicativeness = indicativeness,
+                     spam_likelihood = spam_likelihood, ham_likelihood = ham_likelihood)
 
             final_dictionary.append(w)
 
@@ -126,10 +128,12 @@ class NaiveBayes():
 
         #use _extractWords function to extract the words once they are loaded
 
-        spam_emails_count = 0
+        spam_emails_count = len(spam_words)
 
-        priorSpam = len(spam_words) / len(ham_words) # fraction of documents that are spam (start with "spm")
+        priorSpam = len(spam_words) / (len(ham_words) + len(spam_words)) # fraction of documents that are spam (start with "spm")
         self.logPrior = math.log(priorSpam / (1.0 - priorSpam))
+        priorHam = 1 - priorSpam
+        self.logPriorham = math.log(priorHam / (1.0 - priorHam))
         final_dictionary.sort(key=lambda x: x.indicativeness, reverse=True)
         self.dictionary = final_dictionary
         return self.dictionary, self.logPrior
@@ -144,9 +148,37 @@ class NaiveBayes():
         txt = np.array(self._extractWords(message))
         # TODO: Implement classification function
 
+        p_spam_given_message = self.logPrior
+        p_ham_given_message = self.logPriorham
+
+
+        feature_list = self.dictionary[-number_of_features:] + self.dictionary[:number_of_features]
+
+
+
+
+        for word in txt:
+            for dict_entry in feature_list:
+                if dict_entry.word == word:
+                    p_spam_given_message += np.log(dict_entry.spam_likelihood)
+                    p_ham_given_message += np.log(dict_entry.ham_likelihood)
+
+        classification = True if p_spam_given_message > p_ham_given_message else False ### SPAM <<<< else not spam
+        print(classification)
+
+        return classification
+
+
+            #if not any(a.word == word for a in self.dictionary):
+
+
+
+
+
+
         #USE LAPLACE SMOOTHING FOR LIKELIHOOD (SLIDE 9)
 
-        return 0#???
+
 
     def classifyAndEvaluateAllInFolder(self, msgDirectory: str, number_of_features: int,
                                        fileFormat: str = '*.txt') -> float:
@@ -156,10 +188,35 @@ class NaiveBayes():
         :return: Classification accuracy
         '''
         files = sorted(glob.glob(msgDirectory + fileFormat))
+
         corr = 0  # Number of correctly classified messages
         ncorr = 0  # Number of falsely classified messages
+
+        for file in files:
+            f_open = open(file)
+            f = f_open.read()
+            ground_truth = True if ("spmsga" in file) else False
+            result = self.classify(f, number_of_features = number_of_features)
+            print("ground truth is: ", ground_truth)
+
+            if (ground_truth == result):
+                corr += 1
+            else:
+                ncorr += 1
+
+
+
+
+
+
+
+
         # TODO: Classify each email found in the given directory and figure out if they are correctly or falsely classified
         # TODO: Hint - look at the filenames to figure out the ground truth label
+
+
+
+
         return corr / (corr + ncorr)
 
     def printMostPopularSpamWords(self, num: int) -> None:
