@@ -32,7 +32,7 @@ class NaiveBayes():
         txt = filecontent.split(" ")
         txtClean = [(re.sub(r'[^a-zA-Z]+', '', i).lower()) for i in txt]
         words = [i for i in txtClean if i.isalpha()]
-        print(words)
+        #print(words)
         return words
 
     def train(self, msgDirectory: str, fileFormat: str = '*.txt') -> (List[Word], float):
@@ -164,7 +164,7 @@ class NaiveBayes():
                     p_ham_given_message += np.log(dict_entry.ham_likelihood)
 
         classification = True if p_spam_given_message > p_ham_given_message else False ### SPAM <<<< else not spam
-        print(classification)
+        #print(classification)
 
         return classification
 
@@ -197,7 +197,7 @@ class NaiveBayes():
             f = f_open.read()
             ground_truth = True if ("spmsga" in file) else False
             result = self.classify(f, number_of_features = number_of_features)
-            print("ground truth is: ", ground_truth)
+            #print("ground truth is: ", ground_truth)
 
             if (ground_truth == result):
                 corr += 1
@@ -220,17 +220,30 @@ class NaiveBayes():
         return corr / (corr + ncorr)
 
     def printMostPopularSpamWords(self, num: int) -> None:
+        self.dictionary.sort(key=lambda x: x.numOfSpamWords, reverse=True)
+
         print("{} most popular SPAM words:".format(num))
         # TODO: print the 'num' most used SPAM words from the dictionary
+        for i in self.dictionary[0:num - 1]:
+            print(i.word)
 
     def printMostPopularHamWords(self, num: int) -> None:
         print("{} most popular HAM words:".format(num))
+        self.dictionary.sort(key=lambda x: x.numOfHamWords, reverse=True)
+        for i in self.dictionary[0:num - 1]:
+            print(i.word)
         # TODO: print the 'num' most used HAM words from the dictionary
 
     def printMostindicativeSpamWords(self, num: int) -> None:
         print("{} most distinct SPAM words:".format(num))
         # TODO: print the 'num' most indicative SPAM words from the dictionary
+        self.dictionary.sort(key=lambda x: x.indicativeness, reverse=True)
+        for i in self.dictionary[0:num - 1]:
+            print(i.word)
 
     def printMostindicativeHamWords(self, num: int) -> None:
         print("{} most distinct HAM words:".format(num))
         # TODO: print the 'num' most indicative HAM words from the dictionary
+        self.dictionary.sort(key=lambda x: x.indicativeness, reverse=False)
+        for i in self.dictionary[0:num - 1]:
+            print(i.word)
