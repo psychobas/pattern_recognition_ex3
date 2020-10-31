@@ -19,7 +19,8 @@ class LOGREG(object):
         z = np.dot(w.T, X)
         # print("z is: ", z)
         # print("z shape is: ", z.shape)
-        return 1 / (1 + np.exp(-z))
+        result = 1 / (1 + np.exp(-z))
+        return result
 
     def _costFunction(self, w: np.ndarray, X: np.ndarray, y: np.ndarray) -> float:
         '''
@@ -214,7 +215,7 @@ class LOGREG(object):
         numberOfSamples = X.shape[1]
 
         probabilities = self.activationFunction(self.w, X)
-        predictions = np.where(probabilities > 0.5, 0, 1)
+        predictions = np.where(probabilities < 0.5, 0, 1)
         # print("predictions is: ", predictions)
 
         # predictions = ???
@@ -234,7 +235,7 @@ class LOGREG(object):
 
         numOfMissclassified = np.count_nonzero(pred_minus_truth)
         numberOfSamples = X.shape[1]
-        totalError = 1 - (numOfMissclassified / numberOfSamples)
+        totalError = (numOfMissclassified / numberOfSamples) * 100
 
         # print("predictions is: ", predictions)
 
