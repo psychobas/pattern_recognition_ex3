@@ -214,7 +214,7 @@ class LOGREG(object):
         numberOfSamples = X.shape[1]
 
         probabilities = self.activationFunction(self.w, X)
-        predictions = np.where(probabilities < 0.5, 0, 1)
+        predictions = np.where(probabilities > 0.5, 0, 1)
         # print("predictions is: ", predictions)
 
         # predictions = ???
@@ -234,7 +234,7 @@ class LOGREG(object):
 
         numOfMissclassified = np.count_nonzero(pred_minus_truth)
         numberOfSamples = X.shape[1]
-        totalError = numOfMissclassified / numberOfSamples
+        totalError = 1 - (numOfMissclassified / numberOfSamples)
 
         # print("predictions is: ", predictions)
 
