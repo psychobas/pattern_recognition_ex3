@@ -19,7 +19,7 @@ class LOGREG(object):
         z = np.dot(w.T, X)
         # print("z is: ", z)
         # print("z shape is: ", z.shape)
-        result = 1 / (1 + np.exp(-z))
+        result = 1.0 / (1 + np.exp(-z))
         return result
 
     def _costFunction(self, w: np.ndarray, X: np.ndarray, y: np.ndarray) -> float:
@@ -43,21 +43,23 @@ class LOGREG(object):
         # print("cost is:   ", cost)
 
         # slide 17!
-        cost = np.sum(y * h - np.log(1 + np.exp(h)))
+        cost = np.sum(y * h - np.log(1 + np.exp(h))) / m
         # cost = (-y * np.log(h + self._eps) - (1 - y) * np.log(1 - h)).mean()
         # cost = y * w.T * X - np.log()
 
+
         # print("shape of w is: ", w.shape)
-        print("shape of w is: ", w.shape)
+        #print("shape of w is: ", w.shape)
         # make sure bias term is not regularized
         regularizationTerm =  - self.r / 2 * np.sum(np.square(w))   #np.diag(- self.r / 2 * np.dot(w.T, w))
-        print("regularization Term is: ", regularizationTerm)
-        print("sum of squares is: ", np.sum(np.square(w)))
+        #print("regularization Term is: ", regularizationTerm)
+
         # is r = 1/(sigma^2)?
         # print("Regularization term is: ", regularizationTerm)
         # regularizationTerm = 0
         # TODO: Implement equation of cost function for posterior p(y=1|X,w) -> DONE, CHECKED (questions remain)
-        print("cost is: ", cost)
+        #print("cost is: ", cost)
+        print("exp of cost is: ", np.exp(cost))
 
         return cost + regularizationTerm
 
@@ -74,34 +76,45 @@ class LOGREG(object):
         h = self.activationFunction(w, X)
         numOfEntries = X.shape[1]
         dim = X.shape[0]
-        # print("shape of X is: ", X.shape)
-        # print("shape of h is: ", h.shape)
+        #print("shape of X is: ", X.shape)
+        #print("shape of h - y is: ", (h-y).shape)
         # print("shape of y is: ", y.shape)
         # print("shape of reshaped x is: ", X.shape)
 
-        #firstDerivative = np.dot(X, (h.flatten() - y.flatten())) / y.shape[0] # I do not know what formula you are
+        #murphy page 247
+        #firstDerivative = (np.dot(X, (h.flatten() - y.flatten())) / y.shape[0]).T # I do not know what formula you are
                                                                                 # using, but take a look at slide 20
-        firstDerivative = np.zeros((dim, 1))
-        #print("shape of first derivative is: ", firstDerivative.shape)
-        for i in range(numOfEntries - 1):
-            x_i = X[:, i]
-            y_i = y[i]
-            h_i = h[:,i]
-            if DEBUG:
-                print(np.shape(X))
-                print(np.shape(y))
-                print(np.shape(h))
-                print(np.shape(x_i))
-                print(np.shape(y_i))
-                print(np.shape(h_i))
-                print(np.shape(y_i-h_i))
-                print(np.shape((y_i-h_i)*x_i.T))
-                #print(np.shape(firstDerivative[:,i]))
-                print(np.shape(firstDerivative[1,:]))
-                print("first derivative is: ", firstDerivative)
-            additionTerm = (y_i-h_i)*x_i.T
-            additionTerm = np.reshape(additionTerm, (3,1))
-            firstDerivative += additionTerm
+
+        firstDerivative = np.dot(X, (h - y).T)
+        # my_first_derivative = np.dot(X, (h - y).T) / numOfEntries
+        #
+        # print("my first derivative is:", my_first_derivative)
+        # firstDerivative = np.zeros((dim, 1))
+        # print("shape of first derivative is: ", firstDerivative.shape)
+        # for i in range(numOfEntries - 1):
+        #     x_i = X[:, i]
+        #     y_i = y[i]
+        #     h_i = h[:,i]
+        #     if DEBUG:
+        #         print(np.shape(X))
+        #         print(np.shape(y))
+        #         print(np.shape(h))
+        #         print(np.shape(x_i))
+        #         print(np.shape(y_i))
+        #         print(np.shape(h_i))
+        #         print(np.shape(y_i-h_i))
+        #         print(np.shape((y_i-h_i)*x_i.T))
+        #         #print(np.shape(firstDerivative[:,i]))
+        #         print(np.shape(firstDerivative[1,:]))
+        #         print("first derivative is: ", firstDerivative)
+        #     additionTerm = (y_i-h_i)*x_i.T
+        #     additionTerm = np.reshape(additionTerm, (3,1))
+        #     firstDerivative += additionTerm
+        #
+        #     firstDerivative = firstDerivative / numOfEntries
+        #
+        #     #the two methods for calculating the derivatives yield different results
+        #     print("derivatives are the same:", my_first_derivative == firstDerivative)
 
 
         # firstDerivative = np.sum((y - h) * X.T)  # not working
@@ -112,7 +125,7 @@ class LOGREG(object):
         # double check!
         # regularizationTerm = self.r * w.T
         regularizationTerm = np.diag(- self.r * w.T)  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
-        print("reg_term: ", regularizationTerm)
+        #print("reg_term: ", regularizationTerm)
         # regularizationTerm = 0
 
         # print("first Derivative is: ", firstDerivative)
@@ -136,7 +149,15 @@ class LOGREG(object):
 
         # hessian = X.T.dot(w).dot(X);
         # https://stackoverflow.com/questions/58567344/python-logistic-regression-hessian-getting-a-divide-by-zero-error-and-a-singu check!
-        hessian = -(np.dot(X, X.T) * np.diag(h) * np.diag(1 - h)) # not sure why you are using diagonals here
+        #hessian = -(np.dot(X, X.T) * np.diag(h) * np.diag(1 - h)) # not sure why you are using diagonals here
+        #hessian = -(np.dot(X, X.T) * np.diag(h * (1-h))) * np.dot(X, X.T) /(X.shape[0]) best result so far with this
+
+        #print("h-h", np.diagflat(h * (1-h)))
+
+
+        hessian = -np.dot((np.dot(X, np.diagflat(h * (1-h)))), X.T)
+
+        #print("hessian is: ", hessian.shape)
 
         #hessian = - np.sum((np.dot(X, X.T) * (h * (1 - h)))  # slide 22, does not work due to mismatched dimensions
                                                               # trusting your formula instead
@@ -178,15 +199,17 @@ class LOGREG(object):
             # slide 21
             # slide 23 bottom: Matrix formula!!
             inverse = np.linalg.inv(h)
-            print("inverse is: ", inverse)
-            print("derivative is: ", derivative)
-            w_update = -(inverse * derivative)
-            print("w_update is: ", w_update)
+            #print("shape of inverse is: ", inverse.shape)
+            #print("shape of derivative is: : ", derivative.shape)
+            w_update = -np.dot(inverse, derivative)
+            #print("w_update is: ", w_update)
+            #print("w_update is: ", w_update)
             # print("shape of w_update is: ", w_update.shape)
-            w = w_old + w_update
+            w = w_old - w_update
             # w = w.reshape(-1,1)  #unnecessary (the way I see it)
             posteriorloglikelihood = self._costFunction(w, X, y)
             # print("posteriorloglikelihood is: ", posteriorloglikelihood)
+
             if self.r == 0:
                 # TODO: What happens if this condition is removed?
                 #  -> we get a singular matrix error when computing the dot product for the w_update DONE, CHECKED
@@ -200,6 +223,7 @@ class LOGREG(object):
                 # print("min of w_update is: ", min(w_update))
                 # print(np.any(abs(w_update) < self._threshold))
                 # if w_update.mean() < self._threshold:
+                print("breaking because np.any(abs(w_update)) < self._threshold")
                 break
 
         # print('final posteriorloglikelihood', posteriorloglikelihood, 'final likelihood',
@@ -216,6 +240,7 @@ class LOGREG(object):
         :return: trained w parameter
         '''
         self.w = self._optimizeNewtonRaphson(X, y, iterations)
+        print("number of iteratinos is: ", iterations)
         return self.w
 
     def classify(self, X: np.ndarray) -> np.ndarray:
@@ -228,6 +253,7 @@ class LOGREG(object):
         numberOfSamples = X.shape[1]
 
         probabilities = self.activationFunction(self.w, X)
+        #print("probabilities are: ", probabilities)
         predictions = np.where(probabilities < 0.5, 0, 1)
         # print("predictions is: ", predictions)
 
@@ -243,6 +269,8 @@ class LOGREG(object):
 
         # added by me
         predictions = self.classify(X)
+
+
 
         pred_minus_truth = predictions - y
 
