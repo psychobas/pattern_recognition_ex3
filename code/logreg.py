@@ -78,7 +78,7 @@ class LOGREG(object):
 
         #firstDerivative = np.dot(X, (h.flatten() - y.flatten())) / y.shape[0] # I do not know what formula you are
                                                                                 # using, but take a look at slide 20
-        firstDerivative = np.zeros(dim)
+        firstDerivative = np.zeros((dim, 1))
         for i in range(numOfEntries):
             x_i = X[:, i]
             y_i = y[i]
@@ -93,7 +93,9 @@ class LOGREG(object):
                 print(np.shape(y_i-h_i))
                 print(np.shape((y_i-h_i)*x_i.T))
                 print(np.shape(firstDerivative[:,i]))
-            firstDerivative += (y_i-h_i)*x_i.T
+            additionTerm = (y_i-h_i)*x_i.T
+            additionTerm = np.reshape(additionTerm, (3,1))
+            firstDerivative += additionTerm
 
         # firstDerivative = np.sum((y - h) * X.T)  # not working
 
@@ -167,7 +169,8 @@ class LOGREG(object):
             # print("shape of derivative is: ", derivative.shape)
             # slide 21
             # slide 23 bottom: Matrix formula!!
-            w_update = -(np.linalg.inv(h) * derivative)
+            inverse = np.linalg.inv(h)
+            w_update = -(inverse * derivative)
             # print("w_update is: ", w_update)
             # print("shape of w_update is: ", w_update.shape)
             w = w_old + w_update
