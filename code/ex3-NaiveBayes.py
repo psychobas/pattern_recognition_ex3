@@ -15,7 +15,7 @@ def spamHamtoyExample() -> None:
     naivebay = NaiveBayes()
     naivebay.train(os.path.join(filedir, 'train/'))
 
-    numOfItemsToPrint = 10
+    numOfItemsToPrint = 4
     naivebay.printMostPopularHamWords(numOfItemsToPrint)
     naivebay.printMostPopularSpamWords(numOfItemsToPrint)
     naivebay.printMostindicativeHamWords(numOfItemsToPrint)

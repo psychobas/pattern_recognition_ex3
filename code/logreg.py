@@ -9,7 +9,7 @@ class LOGREG(object):
 
     def __init__(self, regularization: float = 0):
         self.r = regularization
-        self._threshold = 10e-9
+        self._threshold = 10e-6
         self._eps = self._threshold
 
     def activationFunction(self, w: np.ndarray, X: np.ndarray) -> np.ndarray:
@@ -51,7 +51,7 @@ class LOGREG(object):
         # print("shape of w is: ", w.shape)
         #print("shape of w is: ", w.shape)
         # make sure bias term is not regularized
-        regularizationTerm =  - self.r / 2 * np.sum(np.square(w))   #np.diag(- self.r / 2 * np.dot(w.T, w))
+        regularizationTerm =  -self.r / 2 * np.sum(np.square(w))   #np.diag(- self.r / 2 * np.dot(w.T, w))
         #print("regularization Term is: ", regularizationTerm)
 
         # is r = 1/(sigma^2)?
@@ -59,7 +59,7 @@ class LOGREG(object):
         # regularizationTerm = 0
         # TODO: Implement equation of cost function for posterior p(y=1|X,w) -> DONE, CHECKED (questions remain)
         #print("cost is: ", cost)
-        print("exp of cost is: ", np.exp(cost))
+        #print("exp of cost is: ", np.exp(cost))
 
         return cost + regularizationTerm
 
@@ -126,7 +126,8 @@ class LOGREG(object):
         # regularizationTerm = self.r * w.T
         #regularizationTerm = np.diag(- self.r * w.T)  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
         regularizationTerm = 2 * self.r * w.T
-        regularizationTerm[0] = 0
+        #print("regularization term is:", regularizationTerm)
+        regularizationTerm[0][0] = 0
 
         #print("regularization term: ", regularizationTerm)
         #print("reg_term: ", regularizationTerm)
@@ -148,7 +149,7 @@ class LOGREG(object):
         # https://github.com/DrIanGregory/MachineLearning-LogisticRegressionWithGradientDescentOrNewton/blob/master/logisticRegression.py
 
         h = self.activationFunction(w, X)
-        print("H SHAPE IS",h.shape)
+        #print("H SHAPE IS",h.shape)
         #
         # W = np.diag(h * (1 - h))
         # print("h is: ", h)
@@ -162,19 +163,26 @@ class LOGREG(object):
 
 
         hessian = -np.dot((np.dot(X, np.diagflat(h * (1-h)))), X.T)
+        #print("shape 1 of hessian is: ", hessian.shape)
 
         #print("hessian is: ", hessian.shape)
 
         #hessian = - np.sum((np.dot(X, X.T) * (h * (1 - h)))  # slide 22, does not work due to mismatched dimensions
                                                               # trusting your formula instead
 
+        #print("shape of hessian is: ", hessian.shape)
         # print("hessian is: ", hessian)
         # print("shape of X is: ", X.shape)
         # print("shape of h is: ", h.shape)
         # hessian = X.dot(h.T)#.dot(X)
         # print("hessian raw shape is", hessian.shape)
         regularizationTerm = - self.r  # does the transpose affect the sign? or set the term to 0?
-        return hessian + regularizationTerm
+        reg_matrix = np.zeros((hessian.shape[0], hessian.shape[0]))
+        np.fill_diagonal(reg_matrix, regularizationTerm)
+
+        #print("hessian is: ", hessian)
+        #print("hessian diff :", hessian - (hessian + reg_matrix))
+        return hessian + reg_matrix
 
     def _optimizeNewtonRaphson(self, X: np.ndarray, y: np.ndarray, number_of_iterations: int) -> np.ndarray:
         '''
