@@ -124,13 +124,18 @@ class LOGREG(object):
         # print("first Derivative is: ", firstDerivative)
         # double check!
         # regularizationTerm = self.r * w.T
-        regularizationTerm = np.diag(- self.r * w.T)  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
+        #regularizationTerm = np.diag(- self.r * w.T)  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
+        regularizationTerm = 2 * self.r * w.T
+        regularizationTerm[0] = 0
+
+        #print("regularization term: ", regularizationTerm)
         #print("reg_term: ", regularizationTerm)
         # regularizationTerm = 0
 
         # print("first Derivative is: ", firstDerivative)
 
-        return firstDerivative + regularizationTerm
+
+        return firstDerivative + regularizationTerm.T
 
     def _calculateHessian(self, w: np.ndarray, X: np.ndarray) -> np.ndarray:
         '''
@@ -143,6 +148,7 @@ class LOGREG(object):
         # https://github.com/DrIanGregory/MachineLearning-LogisticRegressionWithGradientDescentOrNewton/blob/master/logisticRegression.py
 
         h = self.activationFunction(w, X)
+        print("H SHAPE IS",h.shape)
         #
         # W = np.diag(h * (1 - h))
         # print("h is: ", h)
