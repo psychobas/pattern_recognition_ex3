@@ -48,13 +48,16 @@ class LOGREG(object):
         # cost = y * w.T * X - np.log()
 
         # print("shape of w is: ", w.shape)
-
+        print("shape of w is: ", w.shape)
         # make sure bias term is not regularized
-        regularizationTerm = - self.r / 2 * np.dot(w.T[:, 1:], w[1:])  # unsure if this is correct
+        regularizationTerm =  - self.r / 2 * np.sum(np.square(w))   #np.diag(- self.r / 2 * np.dot(w.T, w))
+        print("regularization Term is: ", regularizationTerm)
+        print("sum of squares is: ", np.sum(np.square(w)))
         # is r = 1/(sigma^2)?
         # print("Regularization term is: ", regularizationTerm)
         # regularizationTerm = 0
         # TODO: Implement equation of cost function for posterior p(y=1|X,w) -> DONE, CHECKED (questions remain)
+        print("cost is: ", cost)
 
         return cost + regularizationTerm
 
@@ -79,7 +82,8 @@ class LOGREG(object):
         #firstDerivative = np.dot(X, (h.flatten() - y.flatten())) / y.shape[0] # I do not know what formula you are
                                                                                 # using, but take a look at slide 20
         firstDerivative = np.zeros((dim, 1))
-        for i in range(numOfEntries):
+        #print("shape of first derivative is: ", firstDerivative.shape)
+        for i in range(numOfEntries - 1):
             x_i = X[:, i]
             y_i = y[i]
             h_i = h[:,i]
@@ -92,10 +96,13 @@ class LOGREG(object):
                 print(np.shape(h_i))
                 print(np.shape(y_i-h_i))
                 print(np.shape((y_i-h_i)*x_i.T))
-                print(np.shape(firstDerivative[:,i]))
+                #print(np.shape(firstDerivative[:,i]))
+                print(np.shape(firstDerivative[1,:]))
+                print("first derivative is: ", firstDerivative)
             additionTerm = (y_i-h_i)*x_i.T
             additionTerm = np.reshape(additionTerm, (3,1))
             firstDerivative += additionTerm
+
 
         # firstDerivative = np.sum((y - h) * X.T)  # not working
 
@@ -104,7 +111,8 @@ class LOGREG(object):
         # print("first Derivative is: ", firstDerivative)
         # double check!
         # regularizationTerm = self.r * w.T
-        regularizationTerm = - self.r * w.T  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
+        regularizationTerm = np.diag(- self.r * w.T)  # I hope that r is = 1/sigma^2, slide 27, is whole w needed or w[1:]?
+        print("reg_term: ", regularizationTerm)
         # regularizationTerm = 0
 
         # print("first Derivative is: ", firstDerivative)
@@ -170,8 +178,10 @@ class LOGREG(object):
             # slide 21
             # slide 23 bottom: Matrix formula!!
             inverse = np.linalg.inv(h)
+            print("inverse is: ", inverse)
+            print("derivative is: ", derivative)
             w_update = -(inverse * derivative)
-            # print("w_update is: ", w_update)
+            print("w_update is: ", w_update)
             # print("shape of w_update is: ", w_update.shape)
             w = w_old + w_update
             # w = w.reshape(-1,1)  #unnecessary (the way I see it)
